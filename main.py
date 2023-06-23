@@ -3,7 +3,8 @@ from pyglet.app import run
 from pyglet.text import Label
 from pyglet import font
 from pyglet import clock
-from pyglet.shapes import Line
+from pyglet.shapes import Line, Rectangle
+import random
 
 class Renderer(Window):
     def __init__(self, game):
@@ -20,6 +21,7 @@ class Renderer(Window):
         """
         self.game.new_round()
         self.characters = []
+        self.confetti = []
         x = self.width
         y = self.height / 2
         for t in self.game.word: # "ALIENS": fixed word for testing, change later
@@ -34,15 +36,19 @@ class Renderer(Window):
         self.laser.draw()
         for c in self.characters:
             c.draw()
+        for c in self.confetti:
+            c.draw()
 
     def on_update(self, dt): # dt = delta time = time since the function was last called
         """
-        updating screen with moving words
+        updating screen with moving words and confetti
         """
         for c in self.characters:
             c.x -= 100 * dt
         if self.characters[0].x < self.laser_x + 12: # +12 for left alignment of the character
             self.start()
+        for c in self.confetti:
+            c.update(dt)
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -50,10 +56,12 @@ class Renderer(Window):
         """
         key = chr(symbol).upper()
         if self.game.check_key(key):
+            character = self.characters[0]
             if self.game.word:
                 self.characters = self.characters[1:]
             else: # word complete
                 self.start()
+            self.confetti.append(Confetti(character.x, character.y))
 
 
 
@@ -69,6 +77,30 @@ class Game:
             self.word = self.word[1:]
             return True
         return False
+
+
+class Confetti:
+    def __init__(self, x, y):
+        self.confetti = [
+            Rectangle(x, y, 10, 10, color=(132, 94, 194, 255)),
+            Rectangle(x, y, 10, 10, color=(214, 93, 177, 255)),
+            Rectangle(x, y, 10, 10, color=(255, 150, 113, 255)),
+            Rectangle(x, y, 10, 10, color=(249, 248, 113, 255)),
+        ]
+        self.y = y + 50
+        self.animation_time = -2
+        self.directions_x = [random.random() * -10 for c in self.confetti]
+        self.speeds = [random.random() * 2 + 2 for c in self.confetti]
+
+    def draw(self):
+        for c in self.confetti:
+            c.draw()
+
+    def update(self, dt):
+        self.animation_time += dt * 20
+        for c, d, s in zip(self.confetti, self.directions_x, self.speeds): # to start with: for c in self.confetti:
+            c.y = self.y - self.animation_time ** 2 * s # c.y = self.y - self.animation_time ** 2
+            c.x += d * dt * 10
 
 
 game = Game()
