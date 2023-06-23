@@ -14,8 +14,20 @@ class Renderer(Window):
         font.add_file("joystix monospace.otf")
         font.load("Joystix", 16)
         self.laser_x = self.width / 5
-        self.laser = Line(self.laser_x, 0, self.laser_x, self.height, color=(214, 93, 177, 255))
+        self.laser = Line(
+            self.laser_x,
+            0,
+            self.laser_x,
+            self.height,
+            color=(214, 93, 177, 255))
         self.shake_animation_time = 0
+        self.stars = []
+        for n in range(20):
+            self.stars.append(Rectangle(
+                random.randint(0, self.width),
+                random.randint(0, self.height),
+                4, 4,
+                color=(132, 94, 194, 255)))
 
     def start(self):
         """
@@ -25,9 +37,16 @@ class Renderer(Window):
         self.characters = []
         self.confetti = []
         x = self.width
-        y = self.height / 2
+        y = random.randint(self.height / 4, self.height / 4 * 3) # random hight for words to appear
         for t in self.game.word: # "ALIENS": fixed word for testing, change later
-            self.characters.append(Label(t, font_size=24, x=x, y=y, font_name="Joystix", anchor_x="center", color=(255, 199, 95, 255)))
+            self.characters.append(Label(
+                t,
+                font_size=24,
+                x=x,
+                y=y,
+                font_name="Joystix",
+                anchor_x="center",
+                color=(255, 199, 95, 255)))
             x = x + 32
 
     def on_draw(self):
@@ -40,6 +59,8 @@ class Renderer(Window):
             c.draw()
         for c in self.confetti:
             c.draw()
+        for s in self.stars:
+            s.draw()
 
     def on_update(self, dt): # dt = delta time = time since the function was last called
         """
@@ -56,6 +77,10 @@ class Renderer(Window):
             self.characters[0].rotation = math.sin(self.shake_animation_time * 50) * 20
         else:
             self.characters[0].rotation = 0
+        for s in self.stars:
+            s.x += dt * 20 # stars in the background move to the right
+            if s.x > self.width:
+                s.x = 0 # if stars leave the screen, their x value is reset
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -78,7 +103,7 @@ class Game:
         self.words = ["SUN", "FLOWER", "SWIMMING", "POOL", "FISH", "BATHING SUIT", "TOWEL"]
 
     def new_round(self):
-        self.word = self.words[0] # first word for testing, change later to random
+        self.word = random.choice(self.words) # choose random word from list for new round
 
     def check_key(self, character):
         if character == self.word[0]:
@@ -107,7 +132,7 @@ class Confetti:
     def update(self, dt):
         self.animation_time += dt * 20
         for c, d, s in zip(self.confetti, self.directions_x, self.speeds): # to start with: for c in self.confetti:
-            c.y = self.y - self.animation_time ** 2 * s # c.y = self.y - self.animation_time ** 2
+            c.y = self.y - self.animation_time ** 2 * s # to start with: c.y = self.y - self.animation_time ** 2
             c.x += d * dt * 10
 
 
