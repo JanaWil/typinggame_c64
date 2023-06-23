@@ -5,6 +5,7 @@ from pyglet import font
 from pyglet import clock
 from pyglet.shapes import Line, Rectangle
 import random
+import math
 
 class Renderer(Window):
     def __init__(self, game):
@@ -14,6 +15,7 @@ class Renderer(Window):
         font.load("Joystix", 16)
         self.laser_x = self.width / 5
         self.laser = Line(self.laser_x, 0, self.laser_x, self.height, color=(214, 93, 177, 255))
+        self.shake_animation_time = 0
 
     def start(self):
         """
@@ -49,6 +51,11 @@ class Renderer(Window):
             self.start()
         for c in self.confetti:
             c.update(dt)
+        if self.shake_animation_time > 0:
+            self.shake_animation_time -= dt
+            self.characters[0].rotation = math.sin(self.shake_animation_time * 50) * 20
+        else:
+            self.characters[0].rotation = 0
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -62,7 +69,8 @@ class Renderer(Window):
             else: # word complete
                 self.start()
             self.confetti.append(Confetti(character.x, character.y))
-
+        else:
+            self.shake_animation_time = .3 # 300 ms
 
 
 class Game:
